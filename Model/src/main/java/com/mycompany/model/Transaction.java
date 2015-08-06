@@ -31,4 +31,13 @@ public class Transaction {
     public BigDecimal getAmount() {
         return amount;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(" ID = ").append(id);
+        stringBuilder.append(" DATE = ").append(date);
+        stringBuilder.append(" AMOUNT = ").append(amount.intValue());
+        return stringBuilder.toString();
+    }
 }

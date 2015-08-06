@@ -5,7 +5,8 @@
  */
 package com.mycompany.webfundamentals;
 
-import com.mycompany.dataaccess.Dao;
+import com.mycompany.dataaccess.dao.Dao;
+import com.mycompany.dataaccess.logging.Log;
 import com.mycompany.model.Account;
 import com.mycompany.model.AccountData;
 import com.mycompany.model.Transaction;
@@ -16,7 +17,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebInitParam;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -26,8 +26,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author izielinski
  */
-@WebServlet(name = "Home", urlPatterns = {"/home"}, initParams = {
-    @WebInitParam(name = "ble", value = "zło")})
+@WebServlet(name = "Home", urlPatterns = {"/home"})
 @Named
 public class Home extends HttpServlet {
 
@@ -36,7 +35,6 @@ public class Home extends HttpServlet {
 
     @Inject
     public Home(Dao dao) {
-        System.out.println("INJECTING" + dao);
         this.dao = dao;
     }
 
@@ -45,9 +43,13 @@ public class Home extends HttpServlet {
         throw new IOException("CZEGO TU SZUKASZ???");
     }
 
+    @Log
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String login = req.getParameter("login");
+        if(login==null) {
+            login = (String)req.getAttribute("login");
+        }
         Account account = dao.getAccountByLogin(login);
         if (account != null) {
             RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/account.jsp");
@@ -60,7 +62,8 @@ public class Home extends HttpServlet {
             req.setAttribute("userData", userData);
             dispatcher.forward(req, resp);
         } else {
-            throw new ServletException("No Such username!");
+            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/registration.jsp");
+            dispatcher.forward(req, resp);
         }
     }
 }

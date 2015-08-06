@@ -11,13 +11,19 @@ package com.mycompany.model;
  */
 public class UserData {
     
-    private final int id;
+    private int id;
     private final String name;
     private final String surname;
+    private final long version = 0L;
 
     public UserData(String name, String surname, int id) {
         this.name = name;
         this.id = id;
+        this.surname = surname;
+    }
+
+    public UserData(String name, String surname) {
+        this.name = name;
         this.surname = surname;
     }
 

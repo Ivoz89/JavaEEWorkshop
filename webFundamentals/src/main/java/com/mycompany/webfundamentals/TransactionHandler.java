@@ -6,12 +6,13 @@
 package com.mycompany.webfundamentals;
 
 import com.google.gson.Gson;
-import com.mycompany.dataaccess.Dao;
+import com.mycompany.dataaccess.dao.Dao;
 import com.mycompany.model.Account;
 import com.mycompany.model.Transaction;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.inject.Inject;
@@ -50,16 +51,13 @@ public class TransactionHandler extends HttpServlet {
         Account account = dao.getAccountByLogin(login);
         if (account != null) {
             Transaction trans = new Transaction(new Date(), BigDecimal.valueOf(amount),1);
-            account.addTransaction(new Transaction(new Date(), BigDecimal.valueOf(amount),1));
             dao.makeTransaction(login, trans);
-           
             Gson gson = new Gson();
             resp.setContentType("application/json");
             PrintWriter out = resp.getWriter();
             ArrayList<Object> list = new ArrayList<Object>();
             list.add(trans);
-            list.add(account.getAccountData().getBalance());
-            
+            list.add(account.getAccountData().getBalance().add(BigDecimal.valueOf(amount)));
             out.print(gson.toJson(list));
             out.flush();
         } else {
