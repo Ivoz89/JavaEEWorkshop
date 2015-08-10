@@ -134,8 +134,9 @@ public class DaoJDBC implements Dao {
 
     private void injectUpdateBalance(Account account, int delta, List<String> statements,
             List<Map<Integer, Pair<ParameterType, Object>>> injectorMaps) {
-        String statement = "update account_data d, account a SET d.BALANCE=d.BALANCE+?, d.VERSION=d.VERSION+1"
-                + " WHERE d.ID=a.ACCOUNT_DATA and a.ID=? and d.VERSION=?";
+        String statement = "update account_data d SET d.BALANCE=d.BALANCE+?, d.VERSION=d.VERSION+1"
+                + " WHERE d.ID=(SELECT a.ACCOUNT_DATA FROM ACCOUNT a WHERE a.id=?)"
+                + " and d.VERSION=?";
         InjectorsBuilder ib = new InjectorsBuilder();
         ib.append(1, ParameterType.INTEGER, delta);
         ib.append(2, ParameterType.INTEGER, account.getId());
