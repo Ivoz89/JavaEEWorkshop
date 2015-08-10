@@ -5,7 +5,7 @@
  */
 package com.mycompany.dataaccess.transactions;
 
-import com.mycompany.dataaccess.connection.ConnectionFactory;
+import com.mycompany.dataaccess.connection.ConnectionProvider;
 import com.mycompany.dataaccess.logging.Log;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,11 +27,13 @@ public class TransactionWrapper {
 
     private static final Logger LOG = Logger.getLogger(TransactionWrapper.class.getName());
 
-    ConnectionFactory connectionFactory;
+    private ConnectionProvider connectionProvider;
+    private Connection connection;
 
     @Inject
-    public TransactionWrapper(ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+    public TransactionWrapper(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+        this.connection = connection;
     }
 
     public TransactionWrapper() {
@@ -39,7 +41,7 @@ public class TransactionWrapper {
 
     @Log
     public void wrapQuery(ResultExtractor transaction, String statement, Map<Integer, Pair<ParameterType, Object>> injectors) {
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = connectionProvider.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(statement);) {
             for (Integer index : injectors.keySet()) {
                 Pair<ParameterType, Object> injection = injectors.get(index);
@@ -56,7 +58,7 @@ public class TransactionWrapper {
     @Log
     public void wrapUpdate(String statement, Map<Integer, Pair<ParameterType, Object>> injectors) {
         Connection connectionForRollback = null;
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = connectionProvider.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(statement);) {
             connectionForRollback = connection;
             connection.setAutoCommit(false);
@@ -75,15 +77,15 @@ public class TransactionWrapper {
     @Log
     public int wrapInsert(String statement, Map<Integer, Pair<ParameterType, Object>> injectors) {
         Connection connectionForRollback = null;
-        try (Connection connection = connectionFactory.getConnection();
+        try (Connection connection = connectionProvider.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);) {
             connectionForRollback = connection;
             connection.setAutoCommit(false);
             executeUpdate(connection, preparedStatement, injectors);
-            connection.commit();
             ResultSet rs = preparedStatement.getGeneratedKeys();
             rs.next();
-            int generatedKey =  rs.getInt(1);
+            int generatedKey = rs.getInt(1);
+            connection.commit();
             return generatedKey;
         } catch (Exception ex) {
             try {
@@ -99,7 +101,7 @@ public class TransactionWrapper {
     @Log
     public void wrapUpdates(List<String> statements, List<Map<Integer, Pair<ParameterType, Object>>> injectorMaps) {
         Connection connectionForRollback = null;
-        try (Connection connection = connectionFactory.getConnection()) {
+        try (Connection connection = connectionProvider.getConnection()) {
             connectionForRollback = connection;
             connection.setAutoCommit(false);
             for (int i = 0; i < statements.size(); i++) {
@@ -128,11 +130,12 @@ public class TransactionWrapper {
         preparedStatement.executeUpdate();
     }
 
-    public ConnectionFactory getConnectionFactory() {
-        return connectionFactory;
+    public ConnectionProvider getConnectionProvider() {
+        return connectionProvider;
     }
 
-    public void setConnectionFactory(ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+    public void setConnectionProvider(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
     }
+
 }

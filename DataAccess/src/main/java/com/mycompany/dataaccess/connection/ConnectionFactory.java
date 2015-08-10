@@ -18,7 +18,7 @@ import javax.sql.DataSource;
  * @author izielinski
  */
 @Dependent
-public class ConnectionFactory {
+public class ConnectionFactory implements ConnectionProvider {
 //
 //    @Resource(name = "jdbc/test")
 //    DataSource dataSource;

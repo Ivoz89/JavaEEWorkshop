@@ -7,6 +7,7 @@ package com.mycompany.dataaccess.dao;
 
 import com.mycompany.dataaccess.logging.Log;
 import com.mycompany.dataaccess.connection.ConnectionFactory;
+import com.mycompany.dataaccess.connection.ConnectionProvider;
 import com.mycompany.dataaccess.transactions.InjectorsBuilder;
 import com.mycompany.dataaccess.transactions.Pair;
 import com.mycompany.dataaccess.transactions.ParameterType;
@@ -21,10 +22,7 @@ import java.sql.ResultSet;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -35,12 +33,10 @@ public class DaoJDBC implements Dao {
 
     private static final Logger LOG = Logger.getLogger(DaoJDBC.class.getName());
 
-    private ConnectionFactory connectionFactory;
     private TransactionWrapper transactionWrapper;
 
     @Inject
-    public DaoJDBC(ConnectionFactory connectionFactory, TransactionWrapper transactionWrapper) {
-        this.connectionFactory = connectionFactory;
+    public DaoJDBC(TransactionWrapper transactionWrapper) {
         this.transactionWrapper = transactionWrapper;
     }
 
@@ -176,15 +172,6 @@ public class DaoJDBC implements Dao {
         return transactionWrapper.wrapInsert(statement, ib.toMap());
     }
     
-
-    public ConnectionFactory getConnectionFactory() {
-        return connectionFactory;
-    }
-
-    public void setConnectionFactory(ConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
-    }
-
     public TransactionWrapper getTransactionWrapper() {
         return transactionWrapper;
     }
